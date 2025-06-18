@@ -1,23 +1,26 @@
-
+require('dotenv').config(); // load .env file
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+
 const cors = require('cors');
 
 const expenseRoutes = require('./routes/expenses');
 const settlementRoutes = require('./routes/settlements');
 
-dotenv.config();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
 .then(() => console.log('MongoDB Connected'))
-.catch((err) => console.error('MongoDB Error:', err));
+.catch((err) => {
+  console.error('MongoDB Connection Error:', err);
+  // Optionally, add more detailed error handling or alerts here
+});
 
 app.use('/expenses', expenseRoutes);
 app.use('/settlements', settlementRoutes);

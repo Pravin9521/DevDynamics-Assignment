@@ -18,45 +18,60 @@ function calculateBalances(expenses) {
 
 // GET /settlements
 router.get('/', async (req, res) => {
-  const expenses = await Expense.find();
-  const balances = calculateBalances(expenses);
+  try {
+    const expenses = await Expense.find();
+    const balances = calculateBalances(expenses);
 
-  // Simplified settlement logic
-  const creditors = [], debtors = [];
-  for (const [person, balance] of Object.entries(balances)) {
-    if (balance > 0) creditors.push({ person, balance });
-    else if (balance < 0) debtors.push({ person, balance });
+    // Simplified settlement logic
+    const creditors = [], debtors = [];
+    for (const [person, balance] of Object.entries(balances)) {
+      if (balance > 0) creditors.push({ person, balance });
+      else if (balance < 0) debtors.push({ person, balance });
+    }
+    const settlements = [];
+    let i = 0, j = 0;
+    while (i < debtors.length && j < creditors.length) {
+      const debtor = debtors[i], creditor = creditors[j];
+      const amount = Math.min(-debtor.balance, creditor.balance);
+      settlements.push({ from: debtor.person, to: creditor.person, amount: +amount.toFixed(2) });
+      debtor.balance += amount;
+      creditor.balance -= amount;
+      if (Math.abs(debtor.balance) < 0.01) i++;
+      if (Math.abs(creditor.balance) < 0.01) j++;
+    }
+    res.json({ success: true, data: settlements });
+  } catch (err) {
+    console.error('MongoDB Error in /settlements:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  const settlements = [];
-  let i = 0, j = 0;
-  while (i < debtors.length && j < creditors.length) {
-    const debtor = debtors[i], creditor = creditors[j];
-    const amount = Math.min(-debtor.balance, creditor.balance);
-    settlements.push({ from: debtor.person, to: creditor.person, amount: +amount.toFixed(2) });
-    debtor.balance += amount;
-    creditor.balance -= amount;
-    if (Math.abs(debtor.balance) < 0.01) i++;
-    if (Math.abs(creditor.balance) < 0.01) j++;
-  }
-  res.json({ success: true, data: settlements });
 });
 
 // GET /settlements/balances
 router.get('/balances', async (req, res) => {
-  const expenses = await Expense.find();
-  const balances = calculateBalances(expenses);
-  res.json({ success: true, data: balances });
+  try {
+    const expenses = await Expense.find();
+    const balances = calculateBalances(expenses);
+    res.json({ success: true, data: balances });
+  } catch (err) {
+    console.error('MongoDB Error in /settlements/balances:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 });
 
 // GET /settlements/people
 router.get('/people', async (req, res) => {
-  const expenses = await Expense.find();
-  const people = new Set();
-  for (const exp of expenses) {
-    people.add(exp.paid_by);
-    exp.splits.forEach(s => people.add(s.name));
+  try {
+    const expenses = await Expense.find();
+    const people = new Set();
+    for (const exp of expenses) {
+      people.add(exp.paid_by);
+      exp.splits.forEach(s => people.add(s.name));
+    }
+    res.json({ success: true, data: Array.from(people) });
+  } catch (err) {
+    console.error('MongoDB Error in /settlements/people:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
-  res.json({ success: true, data: Array.from(people) });
 });
 
 module.exports = router;
