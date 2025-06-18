@@ -20,7 +20,9 @@ function calculateBalances(expenses) {
 router.get('/', async (req, res) => {
   try {
     const expenses = await Expense.find();
+    console.log("Fetched expenses:", expenses);
     const balances = calculateBalances(expenses);
+    console.log("Calculated balances:", balances);
 
     // Simplified settlement logic
     const creditors = [], debtors = [];
@@ -41,7 +43,7 @@ router.get('/', async (req, res) => {
     }
     res.json({ success: true, data: settlements });
   } catch (err) {
-    console.error('MongoDB Error in /settlements:', err);
+    console.error('MongoDB Error in /settlements:', err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -53,7 +55,7 @@ router.get('/balances', async (req, res) => {
     const balances = calculateBalances(expenses);
     res.json({ success: true, data: balances });
   } catch (err) {
-    console.error('MongoDB Error in /settlements/balances:', err);
+    console.error('MongoDB Error in /settlements/balances:', err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -65,11 +67,13 @@ router.get('/people', async (req, res) => {
     const people = new Set();
     for (const exp of expenses) {
       people.add(exp.paid_by);
-      exp.splits.forEach(s => people.add(s.name));
+      if (Array.isArray(exp.splits)) {
+        exp.splits.forEach(s => people.add(s.name));
+      }
     }
     res.json({ success: true, data: Array.from(people) });
   } catch (err) {
-    console.error('MongoDB Error in /settlements/people:', err);
+    console.error('MongoDB Error in /settlements/people:', err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });

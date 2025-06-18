@@ -38,6 +38,7 @@ router.put('/:id', async (req, res) => {
     if (!updated) return res.status(404).json({ success: false, message: 'Expense not found' });
     res.json({ success: true, data: updated });
   } catch (err) {
+    console.error("❌ Error updating expense:", err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -49,6 +50,7 @@ router.delete('/:id', async (req, res) => {
     if (!deleted) return res.status(404).json({ success: false, message: 'Expense not found' });
     res.json({ success: true, message: 'Expense deleted successfully' });
   } catch (err) {
+    console.error("❌ Error deleting expense:", err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
