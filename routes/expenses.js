@@ -12,16 +12,24 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { amount, description, paid_by, splits } = req.body;
+    console.log("📥 Incoming expense:", req.body); // 👈 log it
+
     if (!amount || amount <= 0 || !description || !paid_by) {
       return res.status(400).json({ success: false, message: 'Invalid input' });
     }
+
     const expense = new Expense({ amount, description, paid_by, splits });
-    await expense.save();
-    res.status(201).json({ success: true, data: expense, message: 'Expense added successfully' });
+    const saved = await expense.save();
+
+    console.log("✅ Saved to DB:", saved); // 👈 log result
+
+    res.status(201).json({ success: true, data: saved, message: 'Expense added successfully' });
   } catch (err) {
+    console.error("❌ Error saving:", err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
 
 // PUT /expenses/:id
 router.put('/:id', async (req, res) => {

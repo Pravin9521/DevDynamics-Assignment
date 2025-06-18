@@ -9,7 +9,7 @@ function calculateBalances(expenses) {
     balanceMap[exp.paid_by] = (balanceMap[exp.paid_by] || 0) + exp.amount;
     if (exp.splits) {
       for (const s of exp.splits) {
-        balanceMap[s.name] = (balanceMap[s.name] || 0) - s.amount;
+        balanceMap[s.user] = (balanceMap[s.user] || 0) - s.share;
       }
     }
   }
@@ -65,7 +65,7 @@ router.get('/people', async (req, res) => {
     const people = new Set();
     for (const exp of expenses) {
       people.add(exp.paid_by);
-      exp.splits.forEach(s => people.add(s.name));
+      exp.splits.forEach(s => people.add(s.user));
     }
     res.json({ success: true, data: Array.from(people) });
   } catch (err) {
