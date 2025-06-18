@@ -15,7 +15,7 @@ It supports tracking shared expenses and calculating who owes whom.
 ### 📦 Installation
 
 ```bash
-git clone https://github.com/yourusername/split-app-backend.git
+git clone https://github.com/Pravin9521/DevDynamics-Assignment
 cd split-app-backend
 npm install
 ```
@@ -35,7 +35,7 @@ MONGO_URL=mongodb+srv://<username>:<password>@cluster.mongodb.net/<dbname>?retry
 node server.js
 ```
 
-Server runs on: `http://localhost:5000`
+Server runs on:(https://devdynamics-assignment-production.up.railway.app/)
 
 ---
 
@@ -113,3 +113,7 @@ split-app-backend/
   - Uses `{{base_url}}` and stores `{{expense_id}}` dynamically
 
 ---
+
+## 🎥 Demo Video
+
+https://www.loom.com/share/008c524b1a454bfc9a9c3b5cebb5c4e3?sid=490a2598-eca5-425e-98fa-2bda321b5b82
