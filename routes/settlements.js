@@ -6,9 +6,12 @@ const Expense = require('../models/Expense');
 function calculateBalances(expenses) {
   const balanceMap = {};
   for (const exp of expenses) {
+    if (!exp.paid_by || typeof exp.amount !== 'number') continue;
     balanceMap[exp.paid_by] = (balanceMap[exp.paid_by] || 0) + exp.amount;
-    if (exp.splits) {
+
+    if (Array.isArray(exp.splits)) {
       for (const s of exp.splits) {
+        if (!s?.name || typeof s.amount !== 'number') continue;
         balanceMap[s.name] = (balanceMap[s.name] || 0) - s.amount;
       }
     }
@@ -20,16 +23,16 @@ function calculateBalances(expenses) {
 router.get('/', async (req, res) => {
   try {
     const expenses = await Expense.find();
-    console.log("Fetched expenses:", expenses);
+    console.log("Fetched expenses:", expenses.length);
     const balances = calculateBalances(expenses);
     console.log("Calculated balances:", balances);
 
-    // Simplified settlement logic
     const creditors = [], debtors = [];
     for (const [person, balance] of Object.entries(balances)) {
-      if (balance > 0) creditors.push({ person, balance });
-      else if (balance < 0) debtors.push({ person, balance });
+      if (balance > 0.01) creditors.push({ person, balance });
+      else if (balance < -0.01) debtors.push({ person, balance });
     }
+
     const settlements = [];
     let i = 0, j = 0;
     while (i < debtors.length && j < creditors.length) {
@@ -41,9 +44,10 @@ router.get('/', async (req, res) => {
       if (Math.abs(debtor.balance) < 0.01) i++;
       if (Math.abs(creditor.balance) < 0.01) j++;
     }
+
     res.json({ success: true, data: settlements });
   } catch (err) {
-    console.error('MongoDB Error in /settlements:', err.message);
+    console.error('❌ MongoDB Error in /settlements:', err.message);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -66,9 +70,11 @@ router.get('/people', async (req, res) => {
     const expenses = await Expense.find();
     const people = new Set();
     for (const exp of expenses) {
-      people.add(exp.paid_by);
+      if (exp.paid_by) people.add(exp.paid_by);
       if (Array.isArray(exp.splits)) {
-        exp.splits.forEach(s => people.add(s.name));
+        exp.splits.forEach(s => {
+          if (s?.name) people.add(s.name);
+        });
       }
     }
     res.json({ success: true, data: Array.from(people) });
